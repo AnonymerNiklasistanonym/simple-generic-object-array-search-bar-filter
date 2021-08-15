@@ -55,29 +55,22 @@ This method takes the content of the search bar (=`filter`) and parses it to the
 ```ts
 export interface ParseFilter {
     /**
-     * In here are all filters where a match qualifies an object to be included in the search results.
+     * In here are all filters where a match qualifies an object to be included in the search
+     * results.
      * All elements should be evaluated as OR to be a hit.
      */
-    include: ParseFilterElementAnd[]
+    include: ParseFilterElement[]
     /**
-     * In here are all filters where a match disqualifies an object from being included in the search results.
+     * In here are all filters where a match disqualifies an object from being included
+     * in the search results.
      * All elements should be evaluated as OR to be a hit.
      */
-    exclude: ParseFilterElementAnd[]
+    exclude: ParseFilterElement[]
 }
 ```
 
 ```ts
-export interface ParseFilterElementAnd {
-    /**
-     * This is a single filter where all elements need be evaluated and true for it qualifying as a hit.
-     */
-    filter: ParseFilterElementDetail[]
-}
-```
-
-```ts
-export interface ParseFilterElementDetail {
+export interface ParseFilterElement {
     /**
      * This defines the type of filter that should be evaluated
      */
@@ -90,7 +83,8 @@ export interface ParseFilterElementDetail {
           // example-input: "score<=10" -> Search for objects that have a property "score" value <=10
           // example-input: "score>10" -> Search for objects that have a property "score" value >10
           // example-input: "score<10" -> Search for objects that have a property "score" value <10
-          // example-input: "score=10-20" -> Search for objects that have a property "score" value between 10 and 20
+          // example-input: "score=10-20" -> Search for objects that have a property "score" value
+          //                                 between 10 and 20
     /**
      * When of type "substring" or "property-substring" this attribute indicates the substring to check
      */
