@@ -22,8 +22,12 @@ describe("parseOrFilter", () => {
                 type: "string",
             },
         ]
-        expect(parseOrFilter(parsedOrFilter1, elementFilterInformation1)).to.be
-            .true
+        expect(
+            parseOrFilter(parsedOrFilter1, elementFilterInformation1),
+        ).to.deep.equal({
+            errors: [],
+            match: true,
+        })
 
         const parsedOrFilter2: ParseFilterElementOr = {
             and: [
@@ -39,8 +43,12 @@ describe("parseOrFilter", () => {
                 type: "string",
             },
         ]
-        expect(parseOrFilter(parsedOrFilter2, elementFilterInformation2)).to.be
-            .false
+        expect(
+            parseOrFilter(parsedOrFilter2, elementFilterInformation2),
+        ).to.deep.equal({
+            errors: [],
+            match: false,
+        })
 
         const parsedOrFilter3: ParseFilterElementOr = {
             and: [
@@ -56,8 +64,34 @@ describe("parseOrFilter", () => {
                 type: "string",
             },
         ]
-        expect(parseOrFilter(parsedOrFilter3, elementFilterInformation3)).to.be
-            .true
+        expect(
+            parseOrFilter(parsedOrFilter3, elementFilterInformation3),
+        ).to.deep.equal({
+            errors: [],
+            match: true,
+        })
+
+        const parsedOrFilter4: ParseFilterElementOr = {
+            and: [
+                {
+                    substring: "halo",
+                    type: "substring",
+                },
+            ],
+        }
+        const elementFilterInformation4: ElementFilterInformation[] = [
+            {
+                propertyName: "videoGameName",
+                stringValue: "apex legends",
+                type: "string",
+            },
+        ]
+        expect(
+            parseOrFilter(parsedOrFilter4, elementFilterInformation4),
+        ).to.deep.equal({
+            errors: [],
+            match: false,
+        })
     })
 
     it("simple-property-substring", () => {
@@ -77,8 +111,12 @@ describe("parseOrFilter", () => {
                 type: "string",
             },
         ]
-        expect(parseOrFilter(parsedOrFilter1, elementFilterInformation1)).to.be
-            .true
+        expect(
+            parseOrFilter(parsedOrFilter1, elementFilterInformation1),
+        ).to.deep.equal({
+            errors: [],
+            match: true,
+        })
 
         const parsedOrFilter2: ParseFilterElementOr = {
             and: [
@@ -96,7 +134,11 @@ describe("parseOrFilter", () => {
                 type: "string",
             },
         ]
-        expect(parseOrFilter(parsedOrFilter2, elementFilterInformation2)).to.be
-            .false
+        expect(
+            parseOrFilter(parsedOrFilter2, elementFilterInformation2),
+        ).to.deep.equal({
+            errors: [],
+            match: false,
+        })
     })
 })

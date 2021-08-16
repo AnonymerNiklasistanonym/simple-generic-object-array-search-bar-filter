@@ -86,10 +86,19 @@ export const parseFilter = (filter?: string): ParseFilter => {
         // If the filter starts with a "-" add it to the exclude list
         const parseFilterElementsOr: ParseFilterElementOr = {
             and: andFilter.map((andFilterElement) => {
-                // Check for property-number-range and property-substring
-                // with regex
+                const regexGroupMatch = /(^[^=]+)=([^=]+$)/.exec(
+                    andFilterElement,
+                )
+                if (regexGroupMatch != null) {
+                    return {
+                        propertyName: regexGroupMatch[1].toLowerCase(),
+                        substring: regexGroupMatch[2].toLowerCase(),
+                        type: "property-substring",
+                    }
+                }
+                // Check for property-number-range with regex
                 return {
-                    substring: andFilterElement,
+                    substring: andFilterElement.toLowerCase(),
                     type: "substring",
                 }
             }),

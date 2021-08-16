@@ -1,3 +1,4 @@
+import type { FilterElementResult } from "./parseOrFilter"
 import type { ParseFilter } from "./parseFilter"
 
 import { parseOrFilter } from "./parseOrFilter"
@@ -21,39 +22,54 @@ export interface ElementFilterInformation {
     numberValue?: number
 }
 
-export type getElementFilterInformation = <ElementType>(
-    element: ElementType,
-) => ElementFilterInformation[]
-
-export interface FilterElementResult {
-    /**
-     * True if the object matches the filters and should show up in the search results
-     */
-    match: boolean
-    /**
-     * A collection of error messages between ParseFilter and ObjectFilterInformation[]
-     */
-    errors: string[]
+export interface FilterElementOptions {
+    debug?: boolean
 }
 
 export const filterElement = <ElementType>(
     element: ElementType,
-    elementFilter: getElementFilterInformation,
+    elementFilter: (element: ElementType) => ElementFilterInformation[],
     parsedFilter?: ParseFilter,
+    options: FilterElementOptions = {},
 ): FilterElementResult => {
-    const elementFilterInformation = elementFilter(element)
     const errors: string[] = []
+    const elementFilterInformation = elementFilter(element)
+
+    if (options.debug) {
+        console.debug("elementFilterInformation", elementFilterInformation)
+    }
 
     if (parsedFilter === undefined) {
+        //console.debug("parsedFilter === undefined")
         return { errors, match: true }
     }
 
-    const match =
-        parsedFilter.include.some((parsedFilterOr) =>
-            parseOrFilter(parsedFilterOr, elementFilterInformation),
-        ) &&
-        !parsedFilter.exclude.some((parsedFilterOr) =>
-            parseOrFilter(parsedFilterOr, elementFilterInformation),
-        )
+    const includeFinal = parsedFilter.include.some((parsedFilterOr) => {
+        const result = parseOrFilter(parsedFilterOr, elementFilterInformation)
+        if (options.debug) {
+            console.debug("include", parsedFilterOr, result)
+        }
+        return result.match
+    })
+    if (options.debug) {
+        console.debug("final result include:", includeFinal)
+    }
+
+    const excludeFinal = parsedFilter.exclude.some((parsedFilterOr) => {
+        const result = parseOrFilter(parsedFilterOr, elementFilterInformation)
+        if (options.debug) {
+            console.debug("exclude", parsedFilterOr, result)
+        }
+        return result.match
+    })
+    if (options.debug) {
+        console.debug("final result exclude:", excludeFinal)
+    }
+
+    const match = includeFinal && !excludeFinal
+    if (options.debug) {
+        console.debug("final result include+exclude:", match)
+    }
+
     return { errors, match }
 }

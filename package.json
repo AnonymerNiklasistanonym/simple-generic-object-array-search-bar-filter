@@ -31,6 +31,7 @@
         "lint-fix": "eslint --fix src test",
         "format": "prettier --check src test .prettierrc.js .eslintrc.js",
         "format-fix": "prettier --write src test .prettierrc.js .eslintrc.js",
+        "test-custom": "ts-node test/customTest.ts",
         "test": "mocha --require ts-node/register test/**/**/*.test.ts test/**/*.test.ts test/*.test.ts"
     },
     "repository": {
