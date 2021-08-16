@@ -15,7 +15,3 @@ test
 .prettierrc.js
 # Ignore Typescript configuration file
 tsconfig.json
-# Ignore authentication schema
-authentication.schema.json
-# Ignore authentication secret because it is not parsed from the gitingore correctly
-authentication.secret.json
