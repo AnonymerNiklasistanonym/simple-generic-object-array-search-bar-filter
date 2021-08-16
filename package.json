@@ -1,6 +1,6 @@
 {
     "name": "simple-generic-object-array-search-bar-filter",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "A simple search bar filter optimized to be used with any object array",
     "main": "lib/index.js",
     "types": "lib/index.d.ts",
