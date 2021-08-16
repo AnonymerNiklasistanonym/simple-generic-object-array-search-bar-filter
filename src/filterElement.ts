@@ -45,7 +45,9 @@ export const filterElement = <ElementType>(
     }
 
     const includeFinal = parsedFilter.include.some((parsedFilterOr) => {
-        const result = parseOrFilter(parsedFilterOr, elementFilterInformation)
+        const result = parseOrFilter(parsedFilterOr, elementFilterInformation, {
+            debug: options.debug,
+        })
         if (options.debug) {
             console.debug("include", parsedFilterOr, result)
         }
@@ -56,7 +58,9 @@ export const filterElement = <ElementType>(
     }
 
     const excludeFinal = parsedFilter.exclude.some((parsedFilterOr) => {
-        const result = parseOrFilter(parsedFilterOr, elementFilterInformation)
+        const result = parseOrFilter(parsedFilterOr, elementFilterInformation, {
+            debug: options.debug,
+        })
         if (options.debug) {
             console.debug("exclude", parsedFilterOr, result)
         }

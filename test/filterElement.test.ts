@@ -41,6 +41,7 @@ describe("filterElement", () => {
             name: "Apex",
             score: 10,
         }
+
         expect(
             filterElement(
                 testElement,
@@ -130,11 +131,76 @@ describe("filterElement", () => {
                 testElement,
                 getTestElementInformation,
                 parseFilter("name=ape"),
-                { debug: true },
             ),
         ).to.deep.equal({
             errors: [],
             match: true,
+        })
+    })
+
+    describe("property-number-range", () => {
+        const testElement: TestElement = {
+            description: "Another video game",
+            name: "Apex",
+            score: 10,
+        }
+        it("simple-=", () => {
+            expect(
+                filterElement(
+                    testElement,
+                    getTestElementInformation,
+                    parseFilter("score=10"),
+                ),
+            ).to.deep.equal({
+                errors: [],
+                match: true,
+            })
+
+            expect(
+                filterElement(
+                    testElement,
+                    getTestElementInformation,
+                    parseFilter("score=11"),
+                ),
+            ).to.deep.equal({
+                errors: [],
+                match: false,
+            })
+        })
+
+        it("simple-=-", () => {
+            expect(
+                filterElement(
+                    testElement,
+                    getTestElementInformation,
+                    parseFilter("score=0-10"),
+                ),
+            ).to.deep.equal({
+                errors: [],
+                match: true,
+            })
+
+            expect(
+                filterElement(
+                    testElement,
+                    getTestElementInformation,
+                    parseFilter("score=5-20"),
+                ),
+            ).to.deep.equal({
+                errors: [],
+                match: true,
+            })
+
+            expect(
+                filterElement(
+                    testElement,
+                    getTestElementInformation,
+                    parseFilter("score=5-9"),
+                ),
+            ).to.deep.equal({
+                errors: [],
+                match: false,
+            })
         })
     })
 })

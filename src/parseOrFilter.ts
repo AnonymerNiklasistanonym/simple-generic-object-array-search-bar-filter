@@ -12,9 +12,14 @@ export interface FilterElementResult {
     errors: string[]
 }
 
+export interface ParseOrFilterOptions {
+    debug?: boolean
+}
+
 export const parseOrFilter = (
     parsedFilterOr: ParseFilterElementOr,
     elementFilterInformation: ElementFilterInformation[],
+    options: ParseOrFilterOptions = {},
 ): FilterElementResult => {
     const errors: string[] = []
     const match = parsedFilterOr.and.every((andFilter) => {
@@ -55,7 +60,7 @@ export const parseOrFilter = (
                         return (
                             andFilter.propertyName !== undefined &&
                             andFilter.propertyName ===
-                                filterInformation.propertyName
+                                filterInformation.propertyName?.toLowerCase()
                         )
                     })
                     .some((filterInformation) => {
@@ -72,7 +77,81 @@ export const parseOrFilter = (
                             .includes(andFilter.substring)
                     })
             case "property-number-range":
-                throw Error(`unsupported andFilter.type '${andFilter.type}'`)
+                switch (andFilter.numberRange) {
+                    case "=":
+                        return elementFilterInformation
+                            .filter((filterInformation) => {
+                                return (
+                                    andFilter.propertyName !== undefined &&
+                                    andFilter.propertyName ===
+                                        filterInformation.propertyName?.toLowerCase()
+                                )
+                            })
+                            .some((filterInformation) => {
+                                if (andFilter.numberRangeBegin === undefined) {
+                                    throw Error(
+                                        "andFilter.numberRangeBegin was undefined",
+                                    )
+                                }
+                                if (
+                                    filterInformation.numberValue === undefined
+                                ) {
+                                    throw Error(
+                                        "filterInformation.numberValue was undefined",
+                                    )
+                                }
+                                return (
+                                    Math.abs(
+                                        andFilter.numberRangeBegin -
+                                            filterInformation.numberValue,
+                                    ) < Number.EPSILON
+                                )
+                            })
+                    case "=-":
+                        return elementFilterInformation
+                            .filter((filterInformation) => {
+                                return (
+                                    andFilter.propertyName !== undefined &&
+                                    andFilter.propertyName ===
+                                        filterInformation.propertyName?.toLowerCase()
+                                )
+                            })
+                            .some((filterInformation) => {
+                                if (andFilter.numberRangeBegin === undefined) {
+                                    throw Error(
+                                        "andFilter.numberRangeBegin was undefined",
+                                    )
+                                }
+                                if (andFilter.numberRangeEnd === undefined) {
+                                    throw Error(
+                                        "andFilter.numberRangeEnd was undefined",
+                                    )
+                                }
+                                if (
+                                    filterInformation.numberValue === undefined
+                                ) {
+                                    throw Error(
+                                        "filterInformation.numberValue was undefined",
+                                    )
+                                }
+                                const numberRangeBegin =
+                                    andFilter.numberRangeBegin <=
+                                    filterInformation.numberValue
+                                const numberRangeEnd =
+                                    andFilter.numberRangeEnd >=
+                                    filterInformation.numberValue
+                                if (options.debug) {
+                                    console.debug(
+                                        `numberRangeBegin: ${numberRangeBegin} (${andFilter.numberRangeBegin}<=${filterInformation.numberValue}), numberRangeEnd: ${numberRangeEnd} (${andFilter.numberRangeEnd}>=${filterInformation.numberValue})`,
+                                    )
+                                }
+                                return numberRangeBegin && numberRangeEnd
+                            })
+                    default:
+                        throw Error(
+                            `unsupported andFilter.numberRange '${andFilter.numberRange}'`,
+                        )
+                }
             default:
                 throw Error(`unsupported andFilter.type '${andFilter.type}'`)
         }
