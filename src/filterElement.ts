@@ -47,6 +47,14 @@ export const filterElement = <ElementType>(
         return { errors, match: true }
     }
 
+    if (
+        parsedFilter.exclude.length === 0 &&
+        parsedFilter.include.length === 0
+    ) {
+        //console.debug("parsedFilter.exclude/include.length === 0")
+        return { errors, match: true }
+    }
+
     const includeFinal = parsedFilter.include.some((parsedFilterOr) => {
         const result = parseOrFilter(parsedFilterOr, elementFilterInformation, {
             debug: options.debug,
