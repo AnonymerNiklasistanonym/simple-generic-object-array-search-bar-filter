@@ -12,7 +12,7 @@ export interface ElementFilterInformation {
      * This defines the type of information that is provided by this
      * object property
      */
-    type: "string" | "number"
+    type: "string" | "number" | "string-array" | "number-array"
     /**
      * When of type "string" this attribute indicates the string value
      * of the property
@@ -23,6 +23,16 @@ export interface ElementFilterInformation {
      * of the property
      */
     numberValue?: number
+    /**
+     * When of type "string-array" this attribute indicates the string
+     * array value of the property
+     */
+    stringArrayValue?: string[]
+    /**
+     * When of type "number-array" this attribute indicates the number
+     * array value of the property
+     */
+    numberArrayValue?: number[]
 }
 
 export interface FilterElementOptions {

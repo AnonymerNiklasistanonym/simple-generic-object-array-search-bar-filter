@@ -28,7 +28,8 @@ export const parseOrFilter = (
         switch (andFilter.type) {
             case "substring":
                 return elementFilterInformation.some((filterInformation) => {
-                    if (andFilter.substring === undefined) {
+                    const andFilterSubstring = andFilter.substring
+                    if (andFilterSubstring === undefined) {
                         throw Error("andFilter.substring was undefined")
                     }
                     switch (filterInformation.type) {
@@ -40,7 +41,21 @@ export const parseOrFilter = (
                             }
                             return filterInformation.numberValue
                                 .toString()
-                                .includes(andFilter.substring)
+                                .includes(andFilterSubstring)
+                        case "number-array":
+                            if (
+                                filterInformation.numberArrayValue === undefined
+                            ) {
+                                throw Error(
+                                    "filterInformation.numberArrayValue was undefined",
+                                )
+                            }
+                            return filterInformation.numberArrayValue.some(
+                                (numberValue) =>
+                                    numberValue
+                                        .toString()
+                                        .includes(andFilterSubstring),
+                            )
                         case "string":
                             if (filterInformation.stringValue === undefined) {
                                 throw Error(
@@ -49,7 +64,21 @@ export const parseOrFilter = (
                             }
                             return filterInformation.stringValue
                                 .toLocaleLowerCase()
-                                .includes(andFilter.substring)
+                                .includes(andFilterSubstring)
+                        case "string-array":
+                            if (
+                                filterInformation.stringArrayValue === undefined
+                            ) {
+                                throw Error(
+                                    "filterInformation.stringArrayValue was undefined",
+                                )
+                            }
+                            return filterInformation.stringArrayValue.some(
+                                (stringValue) =>
+                                    stringValue
+                                        .toLocaleLowerCase()
+                                        .includes(andFilterSubstring),
+                            )
                         default:
                             throw Error(
                                 `unsupported filterInformation.type '${filterInformation.type}'`,
@@ -66,17 +95,46 @@ export const parseOrFilter = (
                         )
                     })
                     .some((filterInformation) => {
-                        if (andFilter.substring === undefined) {
+                        const andFilterSubstring = andFilter.substring
+                        if (andFilterSubstring === undefined) {
                             throw Error("andFilter.substring was undefined")
                         }
-                        if (filterInformation.stringValue === undefined) {
-                            throw Error(
-                                "filterInformation.stringValue was undefined",
-                            )
+                        switch (filterInformation.type) {
+                            case "string":
+                                if (
+                                    filterInformation.stringValue === undefined
+                                ) {
+                                    throw Error(
+                                        "filterInformation.stringValue was undefined",
+                                    )
+                                }
+                                return filterInformation.stringValue
+                                    .toLowerCase()
+                                    .includes(andFilterSubstring)
+                            case "string-array":
+                                if (
+                                    filterInformation.stringArrayValue ===
+                                    undefined
+                                ) {
+                                    throw Error(
+                                        "filterInformation.stringArrayValue was undefined",
+                                    )
+                                }
+                                return filterInformation.stringArrayValue.some(
+                                    (stringValue) =>
+                                        stringValue
+                                            .toLocaleLowerCase()
+                                            .includes(andFilterSubstring),
+                                )
+                            case "number":
+                                return false
+                            case "number-array":
+                                return false
+                            default:
+                                throw Error(
+                                    `unsupported filterInformation.type '${filterInformation.type}'`,
+                                )
                         }
-                        return filterInformation.stringValue
-                            .toLowerCase()
-                            .includes(andFilter.substring)
                     })
             case "property-number-range":
                 switch (andFilter.numberRange) {
@@ -90,24 +148,54 @@ export const parseOrFilter = (
                                 )
                             })
                             .some((filterInformation) => {
-                                if (andFilter.numberRangeBegin === undefined) {
+                                const andFilterNumberRangeBegin =
+                                    andFilter.numberRangeBegin
+                                if (andFilterNumberRangeBegin === undefined) {
                                     throw Error(
                                         "andFilter.numberRangeBegin was undefined",
                                     )
                                 }
-                                if (
-                                    filterInformation.numberValue === undefined
-                                ) {
-                                    throw Error(
-                                        "filterInformation.numberValue was undefined",
-                                    )
+                                switch (filterInformation.type) {
+                                    case "number":
+                                        if (
+                                            filterInformation.numberValue ===
+                                            undefined
+                                        ) {
+                                            throw Error(
+                                                "filterInformation.numberValue was undefined",
+                                            )
+                                        }
+                                        return (
+                                            Math.abs(
+                                                andFilterNumberRangeBegin -
+                                                    filterInformation.numberValue,
+                                            ) < Number.EPSILON
+                                        )
+                                    case "number-array":
+                                        if (
+                                            filterInformation.numberArrayValue ===
+                                            undefined
+                                        ) {
+                                            throw Error(
+                                                "filterInformation.numberArrayValue was undefined",
+                                            )
+                                        }
+                                        return filterInformation.numberArrayValue.some(
+                                            (numberValue) =>
+                                                Math.abs(
+                                                    andFilterNumberRangeBegin -
+                                                        numberValue,
+                                                ) < Number.EPSILON,
+                                        )
+                                    case "string":
+                                        return false
+                                    case "string-array":
+                                        return false
+                                    default:
+                                        throw Error(
+                                            `unsupported filterInformation.type '${filterInformation.type}'`,
+                                        )
                                 }
-                                return (
-                                    Math.abs(
-                                        andFilter.numberRangeBegin -
-                                            filterInformation.numberValue,
-                                    ) < Number.EPSILON
-                                )
                             })
                     case "=-":
                         return elementFilterInformation
@@ -119,6 +207,22 @@ export const parseOrFilter = (
                                 )
                             })
                             .some((filterInformation) => {
+                                // TODO: Number arrays
+                                switch (filterInformation.type) {
+                                    case "number":
+                                        // TODO
+                                        break
+                                    //case "number-array":
+                                    // TODO
+                                    case "string":
+                                        return false
+                                    case "string-array":
+                                        return false
+                                    default:
+                                        throw Error(
+                                            `unsupported filterInformation.type '${filterInformation.type}'`,
+                                        )
+                                }
                                 if (andFilter.numberRangeBegin === undefined) {
                                     throw Error(
                                         "andFilter.numberRangeBegin was undefined",
