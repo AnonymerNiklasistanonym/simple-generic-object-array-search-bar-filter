@@ -6,6 +6,14 @@ import type { ParseFilterElementOr } from "../src/parseFilter"
 
 import { parseOrFilter } from "../src/parseOrFilter"
 
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
+// TODO: Structure the tests like the implementation so that number,
+//       string, number-array, string-array are being tested for each
+//       step
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
+
 describe("parseOrFilter", () => {
     it("simple-substring", () => {
         const parsedOrFilter1: ParseFilterElementOr = {

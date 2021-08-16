@@ -18,6 +18,14 @@ export interface ParseOrFilterOptions {
     debug?: boolean
 }
 
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
+// TODO: Put all the subimplementation of the parseOrFilter into
+//       seperate methods so they can be reused and the code gets
+//       more readable
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
+
 export const parseOrFilter = (
     parsedFilterOr: ParseFilterElementOr,
     elementFilterInformation: ElementFilterInformation[],
