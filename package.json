@@ -35,7 +35,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/AnonymerNiklasistanonym/osu-api-v2.git"
+        "url": "git+https://github.com/AnonymerNiklasistanonym/simple-generic-object-array-search-bar-filter.git"
     },
     "keywords": [
         "search",
@@ -47,7 +47,7 @@
     },
     "license": "ISC",
     "bugs": {
-        "url": "https://github.com/AnonymerNiklasistanonym/osu-api-v2/issues"
+        "url": "https://github.com/AnonymerNiklasistanonym/simple-generic-object-array-search-bar-filter/issues"
     },
-    "homepage": "https://github.com/AnonymerNiklasistanonym/osu-api-v2#readme"
+    "homepage": "https://github.com/AnonymerNiklasistanonym/simple-generic-object-array-search-bar-filter#readme"
 }
