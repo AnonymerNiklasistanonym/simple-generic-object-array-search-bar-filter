@@ -3,49 +3,65 @@ export interface ParseFilterElementAnd {
      * This defines the type of filter that should be evaluated
      */
     type:
-        | "substring" // Check if the input matches a substring of the object
-        // example-input: "abc" -> Search for objects that contain somewhere "abc"
-        | "property-substring" // Same as sub-string but only on a specific property
-        // example-input: "name=abc" -> Search for objects that contain on the property "name" "abc"
-        | "property-number-range" // Check if on a certain property the number matches a range
-    // example-input: "score>=10" -> Search for objects that have a property "score" value >=10
-    // example-input: "score<=10" -> Search for objects that have a property "score" value <=10
-    // example-input: "score>10" -> Search for objects that have a property "score" value >10
-    // example-input: "score<10" -> Search for objects that have a property "score" value <10
-    // example-input: "score=10-20" -> Search for objects that have a property "score" value
+        | "substring" // Check if the input matches a substring
+        //               of the object
+        // example-input: "abc" -> Search for objects that contain
+        //                         somewhere "abc"
+        | "property-substring" // Same as sub-string but only on
+        //                        a specific property
+        // example-input: "name=abc" -> Search for objects that
+        //                              contain on the property
+        //                              "name" "abc"
+        | "property-number-range" // Check if on a certain property
+    //                               the number matches a range
+    // example-input: "score>=10" -> Search for objects that have a
+    //                               property "score" value >=10
+    // example-input: "score<=10" -> Search for objects that have a
+    //                               property "score" value <=10
+    // example-input: "score>10" -> Search for objects that have a
+    //                               property "score" value >10
+    // example-input: "score<10" -> Search for objects that have a
+    //                               property "score" value <10
+    // example-input: "score=10-20" -> Search for objects that have
+    //                                 a property "score" value
     //                                 between 10 and 20
     /**
-     * When of type "substring" or "property-substring" this attribute indicates the substring to check
+     * When of type "substring" or "property-substring" this
+     * attribute indicates the substring to check
      */
     substring?: string
     /**
-     * When of type "property-substring" or "property-number-range" this attribute indicates the property
+     * When of type "property-substring" or "property-number-range"
+     * this attribute indicates the property
      */
     propertyName?: string
     /**
-     * When of type "property-number-range" this attribute indicates the operation
+     * When of type "property-number-range" this attribute indicates
+     * the operation
      */
     numberRange?: ">=" | "<=" | ">" | "<" | "=-" | "="
     /**
-     * When of type "property-number-range" this attribute indicates the begin of the number range
+     * When of type "property-number-range" this attribute indicates
+     * the begin of the number range
      */
     numberRangeBegin?: number
     /**
-     * When of type "property-number-range" this attribute indicates the end of the number range
+     * When of type "property-number-range" this attribute indicates
+     * the end of the number range
      */
     numberRangeEnd?: number
 }
 
 export interface ParseFilter {
     /**
-     * In here are all filters where a match qualifies an object to be included in the search
-     * results.
+     * In here are all filters where a match qualifies an object to
+     * be included in the search results.
      * All elements should be evaluated as OR to be a hit.
      */
     include: ParseFilterElementOr[]
     /**
-     * In here are all filters where a match disqualifies an object from being included
-     * in the search results.
+     * In here are all filters where a match disqualifies an object
+     * from being included in the search results.
      * All elements should be evaluated as OR to be a hit.
      */
     exclude: ParseFilterElementOr[]

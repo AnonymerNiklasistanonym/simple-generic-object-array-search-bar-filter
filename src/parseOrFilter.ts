@@ -3,11 +3,13 @@ import type { ParseFilterElementOr } from "./parseFilter"
 
 export interface FilterElementResult {
     /**
-     * True if the object matches the filters and should show up in the search results
+     * True if the object matches the filters and should show up
+     * in the search results
      */
     match: boolean
     /**
-     * A collection of error messages between ParseFilter and ObjectFilterInformation[]
+     * A collection of error messages between ParseFilter and
+     * ElementFilterInformation[]
      */
     errors: string[]
 }

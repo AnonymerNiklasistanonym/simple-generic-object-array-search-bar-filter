@@ -9,15 +9,18 @@ export interface ElementFilterInformation {
      */
     propertyName?: string
     /**
-     * This defines the type of information that is provided by this object property
+     * This defines the type of information that is provided by this
+     * object property
      */
     type: "string" | "number"
     /**
-     * When of type "string" this attribute indicates the string value of the property
+     * When of type "string" this attribute indicates the string value
+     * of the property
      */
     stringValue?: string
     /**
-     * When of type "number" this attribute indicates the number value of the property
+     * When of type "number" this attribute indicates the number value
+     * of the property
      */
     numberValue?: number
 }

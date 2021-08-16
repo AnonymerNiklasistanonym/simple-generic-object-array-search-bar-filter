@@ -42,11 +42,11 @@ PROPERTY-NUMBER-RANGE: "abc=10-20" ["abc=-10-20","abc=-10--2"]
    and check if the object value is between 10 to 20
 ```
 
-### Filter parser
+### Parse filter
 
 ```ts
-const parseFilter = (
-    filter?: string,
+export const parseFilter = (
+    filter?: string
 ): ParseFilter => { /* ... */ }
 ```
 
@@ -55,110 +55,132 @@ This method takes the content of the search bar (=`filter`) and parses it to the
 ```ts
 export interface ParseFilter {
     /**
-     * In here are all filters where a match qualifies an object to be included in the search
-     * results.
+     * In here are all filters where a match qualifies an object to
+     * be included in the search results.
      * All elements should be evaluated as OR to be a hit.
      */
-    include: ParseFilterElement[]
+    include: ParseFilterElementOr[]
     /**
-     * In here are all filters where a match disqualifies an object from being included
-     * in the search results.
+     * In here are all filters where a match disqualifies an object
+     * from being included in the search results.
      * All elements should be evaluated as OR to be a hit.
      */
-    exclude: ParseFilterElement[]
+    exclude: ParseFilterElementOr[]
 }
 ```
 
 ```ts
-export interface ParseFilterElement {
+export interface ParseFilterElementOr {
+    and: ParseFilterElementAnd[]
+}
+export interface ParseFilterElementAnd {
     /**
      * This defines the type of filter that should be evaluated
      */
-    type: "substring" // Check if the input matches a substring of the object
-          // example-input: "abc" -> Search for objects that contain somewhere "abc"
-          | "property-substring" // Same as sub-string but only on a specific property
-          // example-input: "name=abc" -> Search for objects that contain on the property "name" "abc"
-          | "property-number-range" // Check if on a certain property the number matches a range
-          // example-input: "score>=10" -> Search for objects that have a property "score" value >=10
-          // example-input: "score<=10" -> Search for objects that have a property "score" value <=10
-          // example-input: "score>10" -> Search for objects that have a property "score" value >10
-          // example-input: "score<10" -> Search for objects that have a property "score" value <10
-          // example-input: "score=10-20" -> Search for objects that have a property "score" value
-          //                                 between 10 and 20
+    type:
+        | "substring" // Check if the input matches a substring
+        //               of the object
+        // example-input: "abc" -> Search for objects that contain
+        //                         somewhere "abc"
+        | "property-substring" // Same as sub-string but only on
+        //                        a specific property
+        // example-input: "name=abc" -> Search for objects that
+        //                              contain on the property
+        //                              "name" "abc"
+        | "property-number-range" // Check if on a certain property
+    //                               the number matches a range
+    // example-input: "score>=10" -> Search for objects that have a
+    //                               property "score" value >=10
+    // example-input: "score<=10" -> Search for objects that have a
+    //                               property "score" value <=10
+    // example-input: "score>10" -> Search for objects that have a
+    //                               property "score" value >10
+    // example-input: "score<10" -> Search for objects that have a
+    //                               property "score" value <10
+    // example-input: "score=10-20" -> Search for objects that have
+    //                                 a property "score" value
+    //                                 between 10 and 20
     /**
-     * When of type "substring" or "property-substring" this attribute indicates the substring to check
+     * When of type "substring" or "property-substring" this
+     * attribute indicates the substring to check
      */
     substring?: string
     /**
-     * When of type "property-substring" or "property-number-range" this attribute indicates the property
+     * When of type "property-substring" or "property-number-range"
+     * this attribute indicates the property
      */
     propertyName?: string
     /**
-     * When of type "property-number-range" this attribute indicates the operation
+     * When of type "property-number-range" this attribute indicates
+     * the operation
      */
-    numberRange?: ">=" | "<=" | ">" | "<" | "-"
+    numberRange?: ">=" | "<=" | ">" | "<" | "=-" | "="
     /**
-     * When of type "property-number-range" this attribute indicates the begin of the number range
+     * When of type "property-number-range" this attribute indicates
+     * the begin of the number range
      */
     numberRangeBegin?: number
     /**
-     * When of type "property-number-range" this attribute indicates the end of the number range
+     * When of type "property-number-range" this attribute indicates
+     * the end of the number range
      */
     numberRangeEnd?: number
 }
 ```
 
-### Filter objects
+### Filter element
 
 ```ts
-export const filterObjects = (
-    object: ObjectType,
-    objectFilter: () => { /* ... */ },
-    filter?: ParseFilter,
-): FilterObjects => { / * ... */ }
+export interface FilterElementOptions {
+    debug?: boolean
+}
+
+export const filterElement = <ElementType>(
+    element: ElementType,
+    elementFilter: (element: ElementType) => ElementFilterInformation[],
+    parsedFilter?: ParseFilter,
+    options: FilterElementOptions = {},
+): FilterElementResult => { / * ... */ }
 ```
 
 This method takes the output of the filter parser and any object that should be checked if it should show up in the search results.
 It returns true if the object qualifies after executing the filters on it (if the filter is undefined true is returned).
 
 ```ts
-export interface FilterObjects {
+export interface FilterElementResult {
     /**
-     * True if the object matches the filters and should show up in the search results
+     * True if the object matches the filters and should show up
+     * in the search results
      */
     match: boolean
     /**
-     * A collection of error messages between ParseFilter and ObjectFilterInformation[]
+     * A collection of error messages between ParseFilter and
+     * ElementFilterInformation[]
      */
     errors: string[]
 }
 ```
 
-The custom `objectFilter` is implemented as follows:
-
 ```ts
-const objectFilter = (
-    object: ObjectType,
-): ObjectFilterInformation[] => { /* ... */ }
-```
-
-```ts
-export interface ObjectFilterInformation {
+export interface ElementFilterInformation {
     /**
-     * The name of the property with the follwong string/number value
+     * The name of the property with the following string/number value
      */
-    propertyName: string
+    propertyName?: string
     /**
-     * This defines the type of information that is provided by this object property
+     * This defines the type of information that is provided by this
+     * object property
      */
     type: "string" | "number"
     /**
-     * When of type "string" this attribute indicates the string value of the property
+     * When of type "string" this attribute indicates the string value
+     * of the property
      */
-    stringValue: string
+    stringValue?: string
     /**
-     * When of type "number" this attribute indicates the number value of the property
+     * When of type "number" this attribute indicates the number value
+     * of the property
      */
-    numberValue: number
+    numberValue?: number
 }
 ```
