@@ -13,18 +13,24 @@ export interface ParseFilterElementAnd {
         //                              contain on the property
         //                              "name" "abc"
         | "property-number-range" // Check if on a certain property
-    //                               the number matches a range
-    // example-input: "score>=10" -> Search for objects that have a
-    //                               property "score" value >=10
-    // example-input: "score<=10" -> Search for objects that have a
-    //                               property "score" value <=10
-    // example-input: "score>10" -> Search for objects that have a
-    //                               property "score" value >10
-    // example-input: "score<10" -> Search for objects that have a
-    //                               property "score" value <10
-    // example-input: "score=10-20" -> Search for objects that have
-    //                                 a property "score" value
-    //                                 between 10 and 20
+        //                               the number matches a range
+        // example-input: "score>=10" -> Search for objects that have a
+        //                               property "score" value >=10
+        // example-input: "score<=10" -> Search for objects that have a
+        //                               property "score" value <=10
+        // example-input: "score>10" -> Search for objects that have a
+        //                               property "score" value >10
+        // example-input: "score<10" -> Search for objects that have a
+        //                               property "score" value <10
+        // example-input: "score<=>10-20" -> Search for objects that have
+        //                                 a property "score" value
+        //                                 between 10 and 20
+        | "property-string-possible-range" // Check if on a certain
+    //                                        property a string-to-
+    //     number-value-mapper exists which means it can be treated
+    //     like property-number-range otherwise either match nothing
+    //     or in case of "=" and "=-" do property-substring matching
+
     /**
      * When of type "substring" or "property-substring" this
      * attribute indicates the substring to check
@@ -39,7 +45,7 @@ export interface ParseFilterElementAnd {
      * When of type "property-number-range" this attribute indicates
      * the operation
      */
-    numberRange?: ">=" | "<=" | ">" | "<" | "=-" | "="
+    rangeIndicator?: ">=" | "<=" | ">" | "<" | "<=>-" | "="
     /**
      * When of type "property-number-range" this attribute indicates
      * the begin of the number range
@@ -50,6 +56,16 @@ export interface ParseFilterElementAnd {
      * the end of the number range
      */
     numberRangeEnd?: number
+    /**
+     * When of type "property-string-possible-range" this attribute
+     * indicates the begin of the number range
+     */
+    stringRangeBegin?: string
+    /**
+     * When of type "property-string-possible-range" this attribute
+     * indicates the end of the number range
+     */
+    stringRangeEnd?: string
 }
 
 export interface ParseFilter {
@@ -73,11 +89,22 @@ export interface ParseFilterElementOr {
 
 export const regexPropertySubstring = /(^[^=<>]+)=([^=<>]+)$/
 export const regexPropertyNumber = /(^[^=<>]+)=(\d+\.?\d*)$/
+
 export const regexPropertyNumberRangeLeq = /(^[^=<>]+)<=(\d+\.?\d*)$/
+export const regexPropertyStringPossibleRangeLeq = /(^[^=<>]+)<=([^=<>]+)$/
+
 export const regexPropertyNumberRangeGeq = /(^[^=<>]+)>=(\d+\.?\d*)$/
+export const regexPropertyStringPossibleRangeGeq = /(^[^=<>]+)>=([^=<>]+)$/
+
 export const regexPropertyNumberRangeLe = /(^[^=<>]+)<(\d+\.?\d*)$/
+export const regexPropertyStringPossibleRangeLe = /(^[^=<>]+)<([^=<>]+)$/
+
 export const regexPropertyNumberRangeGe = /(^[^=<>]+)>(\d+\.?\d*)$/
-export const regexPropertyNumberRange = /(^[^=<>]+)=(\d+\.?\d*)-(\d+\.?\d*)$/
+export const regexPropertyStringPossibleRangeGe = /(^[^=<>]+)>([^=<>]+)$/
+
+export const regexPropertyNumberRange = /(^[^=<>]+)<=>(\d+\.?\d*)-(\d+\.?\d*)$/
+export const regexPropertyStringPossibleRange =
+    /(^[^=<>]+)<=>([^=<>]+)-([^=<>]+)$/
 
 export const parseFilter = (filter?: string): ParseFilter => {
     const exclude: ParseFilterElementOr[] = []
@@ -114,7 +141,6 @@ export const parseFilter = (filter?: string): ParseFilter => {
                     regexPropertyNumberRange.exec(andFilterElement)
                 if (regexPropertyNumberRangeGroupMatch != null) {
                     return {
-                        numberRange: "=-",
                         numberRangeBegin: Number.parseFloat(
                             regexPropertyNumberRangeGroupMatch[2],
                         ),
@@ -123,7 +149,131 @@ export const parseFilter = (filter?: string): ParseFilter => {
                         ),
                         propertyName:
                             regexPropertyNumberRangeGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "<=>-",
                         type: "property-number-range",
+                    }
+                }
+
+                const regexPropertyStringPossibleRangeGroupMatch =
+                    regexPropertyStringPossibleRange.exec(andFilterElement)
+                if (regexPropertyStringPossibleRangeGroupMatch != null) {
+                    return {
+                        propertyName:
+                            regexPropertyStringPossibleRangeGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "<=>-",
+                        stringRangeBegin:
+                            regexPropertyStringPossibleRangeGroupMatch[2],
+                        stringRangeEnd:
+                            regexPropertyStringPossibleRangeGroupMatch[3],
+                        type: "property-string-possible-range",
+                    }
+                }
+
+                const regexPropertyNumberRangeLeqGroupMatch =
+                    regexPropertyNumberRangeLeq.exec(andFilterElement)
+                if (regexPropertyNumberRangeLeqGroupMatch != null) {
+                    return {
+                        numberRangeBegin: Number.parseFloat(
+                            regexPropertyNumberRangeLeqGroupMatch[2],
+                        ),
+                        propertyName:
+                            regexPropertyNumberRangeLeqGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "<=",
+                        type: "property-number-range",
+                    }
+                }
+
+                const regexPropertyStringPossibleRangeLeqGroupMatch =
+                    regexPropertyStringPossibleRangeLeq.exec(andFilterElement)
+                if (regexPropertyStringPossibleRangeLeqGroupMatch != null) {
+                    return {
+                        propertyName:
+                            regexPropertyStringPossibleRangeLeqGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "<=",
+                        stringRangeBegin:
+                            regexPropertyStringPossibleRangeLeqGroupMatch[2],
+                        type: "property-string-possible-range",
+                    }
+                }
+
+                const regexPropertyNumberRangeGeqGroupMatch =
+                    regexPropertyNumberRangeGeq.exec(andFilterElement)
+                if (regexPropertyNumberRangeGeqGroupMatch != null) {
+                    return {
+                        numberRangeBegin: Number.parseFloat(
+                            regexPropertyNumberRangeGeqGroupMatch[2],
+                        ),
+                        propertyName:
+                            regexPropertyNumberRangeGeqGroupMatch[1].toLowerCase(),
+                        rangeIndicator: ">=",
+                        type: "property-number-range",
+                    }
+                }
+
+                const regexPropertyStringPossibleRangeGeqGroupMatch =
+                    regexPropertyStringPossibleRangeGeq.exec(andFilterElement)
+                if (regexPropertyStringPossibleRangeGeqGroupMatch != null) {
+                    return {
+                        propertyName:
+                            regexPropertyStringPossibleRangeGeqGroupMatch[1].toLowerCase(),
+                        rangeIndicator: ">=",
+                        stringRangeBegin:
+                            regexPropertyStringPossibleRangeGeqGroupMatch[2],
+                        type: "property-string-possible-range",
+                    }
+                }
+
+                const regexPropertyNumberRangeLeGroupMatch =
+                    regexPropertyNumberRangeLe.exec(andFilterElement)
+                if (regexPropertyNumberRangeLeGroupMatch != null) {
+                    return {
+                        numberRangeBegin: Number.parseFloat(
+                            regexPropertyNumberRangeLeGroupMatch[2],
+                        ),
+                        propertyName:
+                            regexPropertyNumberRangeLeGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "<",
+                        type: "property-number-range",
+                    }
+                }
+
+                const regexPropertyStringPossibleRangeLeGroupMatch =
+                    regexPropertyStringPossibleRangeLe.exec(andFilterElement)
+                if (regexPropertyStringPossibleRangeLeGroupMatch != null) {
+                    return {
+                        propertyName:
+                            regexPropertyStringPossibleRangeLeGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "<",
+                        stringRangeBegin:
+                            regexPropertyStringPossibleRangeLeGroupMatch[2].toLowerCase(),
+                        type: "property-string-possible-range",
+                    }
+                }
+
+                const regexPropertyNumberRangeGeGroupMatch =
+                    regexPropertyNumberRangeGe.exec(andFilterElement)
+                if (regexPropertyNumberRangeGeGroupMatch != null) {
+                    return {
+                        numberRangeBegin: Number.parseFloat(
+                            regexPropertyNumberRangeGeGroupMatch[2],
+                        ),
+                        propertyName:
+                            regexPropertyNumberRangeGeGroupMatch[1].toLowerCase(),
+                        rangeIndicator: ">",
+                        type: "property-number-range",
+                    }
+                }
+
+                const regexPropertyStringPossibleRangeGeGroupMatch =
+                    regexPropertyStringPossibleRangeGe.exec(andFilterElement)
+                if (regexPropertyStringPossibleRangeGeGroupMatch != null) {
+                    return {
+                        propertyName:
+                            regexPropertyStringPossibleRangeGeGroupMatch[1].toLowerCase(),
+                        rangeIndicator: ">",
+                        stringRangeBegin:
+                            regexPropertyStringPossibleRangeGeGroupMatch[2].toLowerCase(),
+                        type: "property-string-possible-range",
                     }
                 }
 
@@ -131,12 +281,12 @@ export const parseFilter = (filter?: string): ParseFilter => {
                     regexPropertyNumber.exec(andFilterElement)
                 if (regexPropertyNumberGroupMatch != null) {
                     return {
-                        numberRange: "=",
                         numberRangeBegin: Number.parseFloat(
                             regexPropertyNumberGroupMatch[2],
                         ),
                         propertyName:
                             regexPropertyNumberGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "=",
                         type: "property-number-range",
                     }
                 }
@@ -147,6 +297,7 @@ export const parseFilter = (filter?: string): ParseFilter => {
                     return {
                         propertyName:
                             regexPropertySubstringGroupMatch[1].toLowerCase(),
+                        rangeIndicator: "=",
                         substring:
                             regexPropertySubstringGroupMatch[2].toLowerCase(),
                         type: "property-substring",

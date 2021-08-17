@@ -19,6 +19,12 @@ export interface ElementFilterInformation {
      */
     stringValue?: string
     /**
+     * When of type "string" or "string-array" this attribute allows to
+     * map number values onto strings so they can als be treated like
+     * numbers for comparisons of the property
+     */
+    stringValueToNumberValueMapper?: (input: string) => number
+    /**
      * When of type "number" this attribute indicates the number value
      * of the property
      */
@@ -49,11 +55,14 @@ export const filterElement = <ElementType>(
     const elementFilterInformation = elementFilter(element)
 
     if (options.debug) {
-        console.debug("elementFilterInformation", elementFilterInformation)
+        console.debug("filter element:", element)
+        console.debug("- ElementFilterInformation[]:", elementFilterInformation)
     }
 
     if (parsedFilter === undefined) {
-        //console.debug("parsedFilter === undefined")
+        if (options.debug) {
+            console.debug("parsedFilter === undefined")
+        }
         return { errors, match: true }
     }
 
@@ -61,7 +70,9 @@ export const filterElement = <ElementType>(
         parsedFilter.exclude.length === 0 &&
         parsedFilter.include.length === 0
     ) {
-        //console.debug("parsedFilter.exclude/include.length === 0")
+        if (options.debug) {
+            console.debug("parsedFilter.exclude/include.length === 0")
+        }
         return { errors, match: true }
     }
 
@@ -70,12 +81,12 @@ export const filterElement = <ElementType>(
             debug: options.debug,
         })
         if (options.debug) {
-            console.debug("include", parsedFilterOr, result)
+            console.debug("- include, parseOrFilter:", parsedFilterOr, result)
         }
         return result.match
     })
     if (options.debug) {
-        console.debug("final result include:", includeFinal)
+        console.debug("--> result over all include filters:", includeFinal)
     }
 
     const excludeFinal = parsedFilter.exclude.some((parsedFilterOr) => {
@@ -83,17 +94,17 @@ export const filterElement = <ElementType>(
             debug: options.debug,
         })
         if (options.debug) {
-            console.debug("exclude", parsedFilterOr, result)
+            console.debug("- exclude, parseOrFilter:", parsedFilterOr, result)
         }
         return result.match
     })
     if (options.debug) {
-        console.debug("final result exclude:", excludeFinal)
+        console.debug("--> result over all exclude filters:", includeFinal)
     }
 
     const match = includeFinal && !excludeFinal
     if (options.debug) {
-        console.debug("final result include+exclude:", match)
+        console.debug("==> result over all filters:", match)
     }
 
     return { errors, match }

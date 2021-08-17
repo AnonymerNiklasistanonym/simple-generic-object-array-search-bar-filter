@@ -168,12 +168,12 @@ describe("filterElement", () => {
             })
         })
 
-        it("simple-=-", () => {
+        it("simple-<=>-", () => {
             expect(
                 filterElement(
                     testElement,
                     getTestElementInformation,
-                    parseFilter("score=0-10"),
+                    parseFilter("score<=>0-10"),
                 ),
             ).to.deep.equal({
                 errors: [],
@@ -184,7 +184,7 @@ describe("filterElement", () => {
                 filterElement(
                     testElement,
                     getTestElementInformation,
-                    parseFilter("score=5-20"),
+                    parseFilter("score<=>5-20"),
                 ),
             ).to.deep.equal({
                 errors: [],
@@ -195,7 +195,7 @@ describe("filterElement", () => {
                 filterElement(
                     testElement,
                     getTestElementInformation,
-                    parseFilter("score=5-9"),
+                    parseFilter("score<=>5-9"),
                 ),
             ).to.deep.equal({
                 errors: [],

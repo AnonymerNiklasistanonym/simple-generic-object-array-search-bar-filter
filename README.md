@@ -88,18 +88,24 @@ export interface ParseFilterElementAnd {
         //                              contain on the property
         //                              "name" "abc"
         | "property-number-range" // Check if on a certain property
-    //                               the number matches a range
-    // example-input: "score>=10" -> Search for objects that have a
-    //                               property "score" value >=10
-    // example-input: "score<=10" -> Search for objects that have a
-    //                               property "score" value <=10
-    // example-input: "score>10" -> Search for objects that have a
-    //                               property "score" value >10
-    // example-input: "score<10" -> Search for objects that have a
-    //                               property "score" value <10
-    // example-input: "score=10-20" -> Search for objects that have
-    //                                 a property "score" value
-    //                                 between 10 and 20
+        //                               the number matches a range
+        // example-input: "score>=10" -> Search for objects that have a
+        //                               property "score" value >=10
+        // example-input: "score<=10" -> Search for objects that have a
+        //                               property "score" value <=10
+        // example-input: "score>10" -> Search for objects that have a
+        //                               property "score" value >10
+        // example-input: "score<10" -> Search for objects that have a
+        //                               property "score" value <10
+        // example-input: "score<=>10-20" -> Search for objects that have
+        //                                 a property "score" value
+        //                                 between 10 and 20
+        | "property-string-possible-range" // Check if on a certain
+    //                                        property a string-to-
+    //     number-value-mapper exists which means it can be treated
+    //     like property-number-range otherwise either match nothing
+    //     or in case of "=" and "=-" do property-substring matching
+
     /**
      * When of type "substring" or "property-substring" this
      * attribute indicates the substring to check
@@ -114,7 +120,7 @@ export interface ParseFilterElementAnd {
      * When of type "property-number-range" this attribute indicates
      * the operation
      */
-    numberRange?: ">=" | "<=" | ">" | "<" | "=-" | "="
+    rangeIndicator?: ">=" | "<=" | ">" | "<" | "<=>-" | "="
     /**
      * When of type "property-number-range" this attribute indicates
      * the begin of the number range
@@ -125,6 +131,16 @@ export interface ParseFilterElementAnd {
      * the end of the number range
      */
     numberRangeEnd?: number
+    /**
+     * When of type "property-string-possible-range" this attribute
+     * indicates the begin of the number range
+     */
+    stringRangeBegin?: string
+    /**
+     * When of type "property-string-possible-range" this attribute
+     * indicates the end of the number range
+     */
+    stringRangeEnd?: string
 }
 ```
 
@@ -177,6 +193,12 @@ export interface ElementFilterInformation {
      * of the property
      */
     stringValue?: string
+    /**
+     * When of type "string" or "string-array" this attribute allows to
+     * map number values onto strings so they can als be treated like
+     * numbers for comparisons of the property
+     */
+    stringValueToNumberValueMapper?: (input: string) => number
     /**
      * When of type "number" this attribute indicates the number value
      * of the property

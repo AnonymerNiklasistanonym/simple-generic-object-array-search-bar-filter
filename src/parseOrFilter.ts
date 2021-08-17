@@ -1,5 +1,6 @@
+import { andFilterMatcher } from "./andFilterMatcher"
 import type { ElementFilterInformation } from "./filterElement"
-import type { ParseFilterElementOr } from "./parseFilter"
+import type { ParseFilterElementAnd, ParseFilterElementOr } from "./parseFilter"
 
 export interface FilterElementResult {
     /**
@@ -18,13 +19,28 @@ export interface ParseOrFilterOptions {
     debug?: boolean
 }
 
-// -------------------------------------------------------------------
-// -------------------------------------------------------------------
-// TODO: Put all the subimplementation of the parseOrFilter into
-//       seperate methods so they can be reused and the code gets
-//       more readable
-// -------------------------------------------------------------------
-// -------------------------------------------------------------------
+const filterElementInformationProperty = (
+    filterInformation: ElementFilterInformation[],
+    andFilterPropertyName?: string,
+    options: ParseOrFilterOptions = {},
+): ElementFilterInformation[] => {
+    const filteredFilterInformation = filterInformation.filter(
+        (filterInformationElement) =>
+            andFilterPropertyName !== undefined &&
+            andFilterPropertyName ===
+                filterInformationElement.propertyName?.toLowerCase(),
+    )
+    if (options.debug && filteredFilterInformation.length === 0) {
+        console.debug(`No property is matching for '${andFilterPropertyName}'`)
+    }
+    if (options.debug && filteredFilterInformation.length !== 0) {
+        console.debug(
+            `For '${andFilterPropertyName}' #${filteredFilterInformation.length} elements are matching`,
+            filteredFilterInformation,
+        )
+    }
+    return filteredFilterInformation
+}
 
 export const parseOrFilter = (
     parsedFilterOr: ParseFilterElementOr,
@@ -33,237 +49,124 @@ export const parseOrFilter = (
 ): FilterElementResult => {
     const errors: string[] = []
     const match = parsedFilterOr.and.every((andFilter) => {
+        if (options.debug) {
+            console.debug("  - run and filter:", andFilter)
+        }
         switch (andFilter.type) {
             case "substring":
                 return elementFilterInformation.some((filterInformation) => {
-                    const andFilterSubstring = andFilter.substring
-                    if (andFilterSubstring === undefined) {
-                        throw Error("andFilter.substring was undefined")
-                    }
-                    switch (filterInformation.type) {
-                        case "number":
-                            if (filterInformation.numberValue === undefined) {
-                                throw Error(
-                                    "filterInformation.stringValue was undefined",
-                                )
-                            }
-                            return filterInformation.numberValue
-                                .toString()
-                                .includes(andFilterSubstring)
-                        case "number-array":
-                            if (
-                                filterInformation.numberArrayValue === undefined
-                            ) {
-                                throw Error(
-                                    "filterInformation.numberArrayValue was undefined",
-                                )
-                            }
-                            return filterInformation.numberArrayValue.some(
-                                (numberValue) =>
-                                    numberValue
-                                        .toString()
-                                        .includes(andFilterSubstring),
-                            )
-                        case "string":
-                            if (filterInformation.stringValue === undefined) {
-                                throw Error(
-                                    "filterInformation.stringValue was undefined",
-                                )
-                            }
-                            return filterInformation.stringValue
-                                .toLocaleLowerCase()
-                                .includes(andFilterSubstring)
-                        case "string-array":
-                            if (
-                                filterInformation.stringArrayValue === undefined
-                            ) {
-                                throw Error(
-                                    "filterInformation.stringArrayValue was undefined",
-                                )
-                            }
-                            return filterInformation.stringArrayValue.some(
-                                (stringValue) =>
-                                    stringValue
-                                        .toLocaleLowerCase()
-                                        .includes(andFilterSubstring),
-                            )
-                        default:
-                            throw Error(
-                                `unsupported filterInformation.type '${filterInformation.type}'`,
-                            )
-                    }
+                    const result = andFilterMatcher.substring(
+                        andFilter,
+                        filterInformation,
+                        { debug: options.debug },
+                    )
+                    errors.push(...result.errors)
+                    return result.match
                 })
             case "property-substring":
-                return elementFilterInformation
-                    .filter((filterInformation) => {
-                        return (
-                            andFilter.propertyName !== undefined &&
-                            andFilter.propertyName ===
-                                filterInformation.propertyName?.toLowerCase()
-                        )
-                    })
-                    .some((filterInformation) => {
-                        const andFilterSubstring = andFilter.substring
-                        if (andFilterSubstring === undefined) {
-                            throw Error("andFilter.substring was undefined")
-                        }
-                        switch (filterInformation.type) {
-                            case "string":
-                                if (
-                                    filterInformation.stringValue === undefined
-                                ) {
-                                    throw Error(
-                                        "filterInformation.stringValue was undefined",
-                                    )
-                                }
-                                return filterInformation.stringValue
-                                    .toLowerCase()
-                                    .includes(andFilterSubstring)
-                            case "string-array":
-                                if (
-                                    filterInformation.stringArrayValue ===
-                                    undefined
-                                ) {
-                                    throw Error(
-                                        "filterInformation.stringArrayValue was undefined",
-                                    )
-                                }
-                                return filterInformation.stringArrayValue.some(
-                                    (stringValue) =>
-                                        stringValue
-                                            .toLocaleLowerCase()
-                                            .includes(andFilterSubstring),
-                                )
-                            case "number":
-                                return false
-                            case "number-array":
-                                return false
-                            default:
-                                throw Error(
-                                    `unsupported filterInformation.type '${filterInformation.type}'`,
-                                )
-                        }
-                    })
+                return filterElementInformationProperty(
+                    elementFilterInformation,
+                    andFilter.propertyName,
+                    { debug: options.debug },
+                ).some((filterInformation) => {
+                    const result = andFilterMatcher.substring(
+                        andFilter,
+                        filterInformation,
+                        { debug: options.debug },
+                    )
+                    errors.push(...result.errors)
+                    return result.match
+                })
             case "property-number-range":
-                switch (andFilter.numberRange) {
+            case "property-string-possible-range":
+                switch (andFilter.rangeIndicator) {
                     case "=":
-                        return elementFilterInformation
-                            .filter((filterInformation) => {
-                                return (
-                                    andFilter.propertyName !== undefined &&
-                                    andFilter.propertyName ===
-                                        filterInformation.propertyName?.toLowerCase()
-                                )
-                            })
-                            .some((filterInformation) => {
-                                const andFilterNumberRangeBegin =
-                                    andFilter.numberRangeBegin
-                                if (andFilterNumberRangeBegin === undefined) {
-                                    throw Error(
-                                        "andFilter.numberRangeBegin was undefined",
-                                    )
-                                }
-                                switch (filterInformation.type) {
-                                    case "number":
-                                        if (
-                                            filterInformation.numberValue ===
-                                            undefined
-                                        ) {
-                                            throw Error(
-                                                "filterInformation.numberValue was undefined",
-                                            )
-                                        }
-                                        return (
-                                            Math.abs(
-                                                andFilterNumberRangeBegin -
-                                                    filterInformation.numberValue,
-                                            ) < Number.EPSILON
-                                        )
-                                    case "number-array":
-                                        if (
-                                            filterInformation.numberArrayValue ===
-                                            undefined
-                                        ) {
-                                            throw Error(
-                                                "filterInformation.numberArrayValue was undefined",
-                                            )
-                                        }
-                                        return filterInformation.numberArrayValue.some(
-                                            (numberValue) =>
-                                                Math.abs(
-                                                    andFilterNumberRangeBegin -
-                                                        numberValue,
-                                                ) < Number.EPSILON,
-                                        )
-                                    case "string":
-                                        return false
-                                    case "string-array":
-                                        return false
-                                    default:
-                                        throw Error(
-                                            `unsupported filterInformation.type '${filterInformation.type}'`,
-                                        )
-                                }
-                            })
-                    case "=-":
-                        return elementFilterInformation
-                            .filter((filterInformation) => {
-                                return (
-                                    andFilter.propertyName !== undefined &&
-                                    andFilter.propertyName ===
-                                        filterInformation.propertyName?.toLowerCase()
-                                )
-                            })
-                            .some((filterInformation) => {
-                                // TODO: Number arrays
-                                switch (filterInformation.type) {
-                                    case "number":
-                                        // TODO
-                                        break
-                                    //case "number-array":
-                                    // TODO
-                                    case "string":
-                                        return false
-                                    case "string-array":
-                                        return false
-                                    default:
-                                        throw Error(
-                                            `unsupported filterInformation.type '${filterInformation.type}'`,
-                                        )
-                                }
-                                if (andFilter.numberRangeBegin === undefined) {
-                                    throw Error(
-                                        "andFilter.numberRangeBegin was undefined",
-                                    )
-                                }
-                                if (andFilter.numberRangeEnd === undefined) {
-                                    throw Error(
-                                        "andFilter.numberRangeEnd was undefined",
-                                    )
-                                }
-                                if (
-                                    filterInformation.numberValue === undefined
-                                ) {
-                                    throw Error(
-                                        "filterInformation.numberValue was undefined",
-                                    )
-                                }
-                                const numberRangeBegin =
-                                    andFilter.numberRangeBegin <=
-                                    filterInformation.numberValue
-                                const numberRangeEnd =
-                                    andFilter.numberRangeEnd >=
-                                    filterInformation.numberValue
-                                if (options.debug) {
-                                    console.debug(
-                                        `numberRangeBegin: ${numberRangeBegin} (${andFilter.numberRangeBegin}<=${filterInformation.numberValue}), numberRangeEnd: ${numberRangeEnd} (${andFilter.numberRangeEnd}>=${filterInformation.numberValue})`,
-                                    )
-                                }
-                                return numberRangeBegin && numberRangeEnd
-                            })
+                        return filterElementInformationProperty(
+                            elementFilterInformation,
+                            andFilter.propertyName,
+                            { debug: options.debug },
+                        ).some((filterInformation) => {
+                            const result = andFilterMatcher.numberRange.equals(
+                                andFilter,
+                                filterInformation,
+                                { debug: options.debug },
+                            )
+                            errors.push(...result.errors)
+                            return result.match
+                        })
+                    case "<=>-":
+                        return filterElementInformationProperty(
+                            elementFilterInformation,
+                            andFilter.propertyName,
+                            { debug: options.debug },
+                        ).some((filterInformation) => {
+                            const result = andFilterMatcher.numberRange.between(
+                                andFilter,
+                                filterInformation,
+                                { debug: options.debug },
+                            )
+                            errors.push(...result.errors)
+                            return result.match
+                        })
+                    case ">=":
+                        return filterElementInformationProperty(
+                            elementFilterInformation,
+                            andFilter.propertyName,
+                            { debug: options.debug },
+                        ).some((filterInformation) => {
+                            const result = andFilterMatcher.numberRange.greater(
+                                andFilter,
+                                filterInformation,
+                                { canBeEqual: true, debug: options.debug },
+                            )
+                            errors.push(...result.errors)
+                            return result.match
+                        })
+                    case "<=":
+                        return filterElementInformationProperty(
+                            elementFilterInformation,
+                            andFilter.propertyName,
+                            { debug: options.debug },
+                        ).some((filterInformation) => {
+                            const result = andFilterMatcher.numberRange.lesser(
+                                andFilter,
+                                filterInformation,
+                                { canBeEqual: true, debug: options.debug },
+                            )
+                            errors.push(...result.errors)
+                            return result.match
+                        })
+                    case ">":
+                        return filterElementInformationProperty(
+                            elementFilterInformation,
+                            andFilter.propertyName,
+                            { debug: options.debug },
+                        ).some((filterInformation) => {
+                            const result = andFilterMatcher.numberRange.greater(
+                                andFilter,
+                                filterInformation,
+                                { debug: options.debug },
+                            )
+                            errors.push(...result.errors)
+                            return result.match
+                        })
+                    case "<":
+                        return filterElementInformationProperty(
+                            elementFilterInformation,
+                            andFilter.propertyName,
+                            { debug: options.debug },
+                        ).some((filterInformation) => {
+                            const result = andFilterMatcher.numberRange.lesser(
+                                andFilter,
+                                filterInformation,
+                                { debug: options.debug },
+                            )
+                            errors.push(...result.errors)
+                            return result.match
+                        })
                     default:
                         throw Error(
-                            `unsupported andFilter.numberRange '${andFilter.numberRange}'`,
+                            `unsupported andFilter.rangeIndicator '${andFilter.rangeIndicator}'`,
                         )
                 }
             default:
